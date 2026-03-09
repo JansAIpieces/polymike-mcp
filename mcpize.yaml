@@ -1,0 +1,6 @@
+name: polymike
+version: 1
+runtime: python
+entry: server.py
+python_version: "3.12"
+transport: stdio

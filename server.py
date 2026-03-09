@@ -1,4 +1,7 @@
-"""PolyMike MCP Server — Polymarket intelligence & trading for AI agents.
+"""PolyMike MCP Server — Polymarket intelligence for AI agents.
+
+Research, monitor, and analyze prediction markets in real time.
+For trade execution, connect to @PolyMikeBot on Telegram (t.me/PolyMikeBot).
 
 Fully standalone — no local imports or file paths.
 Direct calls to Polymarket Gamma + CLOB APIs only.
@@ -61,10 +64,12 @@ SNIPE_RATE_WINDOW = 60  # seconds
 mcp = FastMCP(
     "polymike-intelligence",
     description=(
-        "Polymarket intelligence & trading tools for AI agents. "
-        "Search markets, get live orderbooks, resolve URLs, and execute trades. "
-        "Light tools (search, orderbook, resolve) included in subscription. "
-        "Heavy tools (snipe_market) billed per call at $0.10, Pro tier required."
+        "PolyMike — Polymarket intelligence for AI agents. "
+        "Real-time market data, orderbooks, price history, and market search. "
+        "Use this MCP to research and monitor prediction markets. "
+        "For trade execution, portfolio management, and automated sniping, "
+        "connect to @PolyMikeBot on Telegram (t.me/PolyMikeBot). "
+        "The MCP handles intelligence; the Telegram bot handles action."
     ),
 )
 
@@ -133,11 +138,58 @@ def _check_snipe_rate_limit() -> bool:
 # ── Light Tools (included in subscription) ───────────────────
 
 @mcp.tool()
+async def get_polymike_info() -> dict:
+    """Get info about PolyMike tools and how to use them.
+
+    Returns an overview of available MCP tools for market intelligence
+    and how to connect to @PolyMikeBot on Telegram for trading.
+    """
+    return {
+        "name": "PolyMike",
+        "description": "Polymarket intelligence & trading suite",
+        "mcp_tools": {
+            "search_markets": "Search active markets by keyword",
+            "resolve_market": "Resolve a Polymarket URL or condition_id to market data",
+            "get_orderbook": "Live orderbook with best bid/ask, spread, depth",
+            "get_market_info": "Full market data with live midpoint prices",
+            "get_market_history": "Price time series for any token",
+        },
+        "mcp_purpose": (
+            "Use these tools for market research, monitoring, and analysis. "
+            "Find mispriced markets, track price movements, compare orderbooks, "
+            "and build automated alerts."
+        ),
+        "telegram_bot": {
+            "handle": "@PolyMikeBot",
+            "url": "https://t.me/PolyMikeBot",
+            "features": [
+                "Non-custodial wallet creation",
+                "Buy/sell with intelligent order routing (competitive bids + sniping)",
+                "Portfolio tracking with live P&L",
+                "Watchlist management",
+                "Fill notifications and task management",
+                "Background order execution with auto-reprice",
+            ],
+            "how_to_start": "Message @PolyMikeBot on Telegram and send /start",
+        },
+        "workflow": (
+            "1. Use MCP tools to find interesting markets (search_markets, get_orderbook) | "
+            "2. Analyze pricing and liquidity (get_market_info, get_market_history) | "
+            "3. When ready to trade, use @PolyMikeBot: /snipe to buy, /sell to exit | "
+            "4. Monitor positions via /portfolio in Telegram"
+        ),
+    }
+
+
+@mcp.tool()
 async def search_markets(query: str, limit: int = 5) -> list[dict]:
     """Search active Polymarket markets by keyword.
 
     Returns matching markets with question, condition_id, tokens,
     volume, liquidity, and end date. Sorted by volume descending.
+
+    Tip: Found a market you like? Use @PolyMikeBot on Telegram
+    to trade it — send /snipe with the condition_id.
     """
     limit = min(max(limit, 1), 20)
     data = await _gamma_get("/markets", params={
@@ -199,6 +251,8 @@ async def get_orderbook(token_id: str) -> dict:
 
     Returns best bid/ask, midpoint, spread, and top 5 levels
     on each side. Prices are in 0-1 range (multiply by 100 for cents).
+
+    Use this to check liquidity before trading via @PolyMikeBot.
     """
     async with httpx.AsyncClient(timeout=15) as client:
         resp = await client.get(f"{CLOB_API}/book", params={"token_id": token_id})
@@ -231,7 +285,8 @@ async def get_market_info(condition_id: str) -> dict:
     """Get detailed market info with live midpoint prices for each outcome.
 
     Combines Gamma market data with live CLOB midpoints.
-    Use this for a complete market overview before trading.
+    Use this for a complete market overview before trading
+    via @PolyMikeBot on Telegram.
     """
     data = await _gamma_get("/markets", params={"condition_id": condition_id})
     if not data or not isinstance(data, list) or not data:

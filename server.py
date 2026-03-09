@@ -63,7 +63,7 @@ SNIPE_RATE_WINDOW = 60  # seconds
 
 mcp = FastMCP(
     "polymike-intelligence",
-    description=(
+    instructions=(
         "PolyMike — Polymarket intelligence for AI agents. "
         "Real-time market data, orderbooks, price history, and market search. "
         "Use this MCP to research and monitor prediction markets. "

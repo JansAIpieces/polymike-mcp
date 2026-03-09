@@ -304,9 +304,10 @@ async def snipe_market(
 
     Pro tier only — $0.10 per call.
 
-    This tool delegates execution to the PolyMike War Room trading API
-    (localhost:8200). Your API key authenticates you — private keys
-    NEVER leave your local environment.
+    NOTE: This tool requires the PolyMike War Room bot running locally
+    on your machine. It delegates to localhost:8200. Private keys
+    NEVER leave your local environment. On MCPize cloud, this tool
+    will return an error — use local MCP mode for trading.
 
     Args:
         condition_id: Market condition_id (0x...)
@@ -345,7 +346,6 @@ async def snipe_market(
                 return resp.json()
             return {
                 "error": f"Trading API returned {resp.status_code}",
-                "detail": resp.text[:200],
             }
     except httpx.ConnectError:
         return {
